@@ -31,8 +31,40 @@ document.addEventListener('DOMContentLoaded', () => {
   
       const light = new THREE.HemisphereLight( 0xffffff, 0xbbbbff, 1 );
       scene.add(light);
-  
-  
+      // Add pinch-to-scale functionality here
+      let initialDistance = null;
+      let scaleFactor = 1; // Initial scale factor for your object
+
+      // Function to calculate distance between two touch points
+      function calculateDistance(touches) {
+          const touch1 = touches[0];
+          const touch2 = touches[1];
+          return Math.sqrt(Math.pow(touch2.pageX - touch1.pageX, 2) + Math.pow(touch2.pageY - touch1.pageY, 2));
+      }
+
+      renderer.domElement.addEventListener('touchstart', (event) => {
+          if (event.touches.length === 2) { // Ensure two fingers are used
+              initialDistance = calculateDistance(event.touches);
+          }
+      }, false);
+
+      renderer.domElement.addEventListener('touchmove', (event) => {
+          if (event.touches.length === 2) {
+              const distance = calculateDistance(event.touches);
+              if (initialDistance) {
+                  scaleFactor = distance / initialDistance; // Calculate scale factor based on initial and current distance
+                  mesh.scale.set(scaleFactor, scaleFactor, scaleFactor); // Apply scaling to the mesh
+              }
+          }
+      }, false);
+
+      renderer.domElement.addEventListener('touchend', (event) => {
+          if (event.touches.length < 2) {
+              initialDistance = null; // Reset initial distance on touch end
+          }
+      }, false);
+
+      
       renderer.xr.addEventListener("sessionstart", (e) => {
         console.log("session start");
       });
